@@ -1,0 +1,87 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Background */
+  --bg-base: #0e1621;
+  --bg-elevated: #17212b;
+  --bg-card: #1c2733;
+
+  /* Telegram-blue accent */
+  --accent: #229ed9;
+  --accent-deep: #0088cc;
+  --accent-hover: #2ea6e0;
+
+  /* Growth / CTA gradient */
+  --gradient-start: #22d3ee;
+  --gradient-mid: #229ed9;
+  --gradient-end: #7c3aed;
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #8aa0b3;
+
+  /* Status */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* Glass */
+  --glass-bg: rgba(28, 39, 51, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: "Pretendard Variable", Pretendard, -apple-system,
+      BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+  }
+  /* Price / countdown / quantity numbers: fixed-width to prevent jitter. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* Blurred gradient orb placed behind glass cards so the effect reads. */
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(64px);
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

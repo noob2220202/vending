@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  username         String   @unique
+  passwordHash     String?
+  walletAddress    String   @unique // USDT-TRC20 address: deposit-match key + 1 account per wallet (anti-abuse)
+  telegramId       String?  @unique
+  telegramUsername String?
+  walletBalance    Int      @default(0) // charge cash (stored in KRW)
+  pointBalance     Int      @default(0) // earned points (non-withdrawable)
+  role             Role     @default(USER)
+  signupAt         DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  rouletteSpin   RouletteSpin?
+  orders         Order[]
+  coupons        Coupon[]
+  walletTxs      WalletTransaction[]
+  chargeRequests ChargeRequest[]
+  signupLogs     SignupLog[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model SmmProduct {
+  id                String   @id @default(cuid())
+  platform          String // TELEGRAM, INSTAGRAM, ...
+  category          String // MEMBERS, VIEWS, REACTIONS, BOOST
+  name              String
+  pricePerThousand  Int
+  minQty            Int
+  maxQty            Int
+  speedLabel        String
+  externalServiceId String
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  orders Order[]
+}
+
+model ChannelListing {
+  id               String        @id @default(cuid())
+  title            String
+  category         String
+  establishedYear  Int
+  subscriberCount  Int
+  price            Int
+  status           ChannelStatus @default(AVAILABLE)
+  deliveryDeadline DateTime?
+  description      String?
+  isActive         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+
+  orders Order[]
+}
+
+enum ChannelStatus {
+  AVAILABLE
+  RESERVED
+  PROCESSING
+  DELIVERED
+  SOLD
+}
+
+model Order {
+  id     String      @id @default(cuid())
+  userId String
+  user   User        @relation(fields: [userId], references: [id])
+  type   OrderType
+  status OrderStatus @default(PENDING)
+
+  smmProductId    String?
+  smmProduct      SmmProduct? @relation(fields: [smmProductId], references: [id])
+  quantity        Int?
+  targetUrl       String?
+  externalOrderId String?
+
+  channelListingId String?
+  channelListing   ChannelListing? @relation(fields: [channelListingId], references: [id])
+
+  amount      Int
+  pointsUsed  Int @default(0)
+  bonusEarned Int @default(0)
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+enum OrderType {
+  SMM
+  CHANNEL
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELED
+  REFUNDED
+}
+
+model WalletTransaction {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id])
+  type         WalletTxType
+  amount       Int
+  balanceAfter Int
+  memo         String?
+  createdAt    DateTime     @default(now())
+}
+
+enum WalletTxType {
+  CHARGE
+  PURCHASE
+  BONUS
+  REFUND
+}
+
+model ChargeRequest {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  krwAmount      Int
+  quotedRate     Float
+  quotedUsdt     Decimal
+  quoteExpiresAt DateTime
+  matchType      ChargeMatchType?
+  matchedTxId    String?          @unique
+  actualUsdt     Decimal?
+  finalRate      Float?
+  finalKrw       Int?
+  status         ChargeStatus     @default(PENDING)
+  createdAt      DateTime         @default(now())
+  confirmedAt    DateTime?
+}
+
+enum ChargeMatchType {
+  AUTO_SENDER_MATCH
+  MANUAL_TXID
+}
+
+enum ChargeStatus {
+  PENDING
+  CONFIRMED
+  MISMATCHED
+  EXPIRED
+  REJECTED
+}
+
+model Coupon {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  type      CouponType
+  value     Int
+  minSpend  Int          @default(0)
+  maxBonus  Int
+  expiresAt DateTime
+  status    CouponStatus @default(ACTIVE)
+  source    String
+  createdAt DateTime     @default(now())
+
+  rouletteSpin RouletteSpin?
+}
+
+enum CouponType {
+  PERCENT_MATCH
+  FIXED
+}
+
+enum CouponStatus {
+  ACTIVE
+  USED
+  EXPIRED
+}
+
+model RouletteSpin {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  resultSegment String
+  couponId      String?  @unique
+  coupon        Coupon?  @relation(fields: [couponId], references: [id])
+  spunAt        DateTime @default(now())
+}
+
+// Anti-abuse: collect signup device/IP signals from day one (detection logic later).
+model SignupLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+}
