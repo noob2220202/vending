@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
@@ -7,14 +7,18 @@ import { toSessionUser } from "@/lib/serialize";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/header";
 
-const display = Space_Grotesk({
-  subsets: ["latin"],
+// Self-hosted (not next/font/google) so production builds don't depend on
+// reaching fonts.gstatic.com at build time.
+const display = localFont({
+  src: "./fonts/SpaceGrotesk-Variable.woff2",
+  weight: "300 700",
   variable: "--font-display",
   display: "swap",
 });
 
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
+const mono = localFont({
+  src: "./fonts/JetBrainsMono-Variable.woff2",
+  weight: "400 700",
   variable: "--font-mono",
   display: "swap",
 });
