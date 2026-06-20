@@ -68,3 +68,10 @@ export async function requireUser() {
   if (!user) throw new Error("UNAUTHORIZED");
   return user;
 }
+
+/** Like requireUser but also asserts the ADMIN role — for admin-only routes/pages. */
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
+  return user;
+}

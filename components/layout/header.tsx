@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Wallet, Coins, ShoppingCart, Lightning, Plus } from "@phosphor-icons/react/ssr";
+import { Wallet, Coins, ShoppingCart, Lightning, Plus, Gear } from "@phosphor-icons/react/ssr";
 import { useSession } from "@/components/providers";
 import { useCart } from "@/store/cart";
 import { formatNumber } from "@/lib/utils";
@@ -35,6 +35,16 @@ export function Header() {
 
           {user ? (
             <>
+              {user.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1 rounded-xl bg-bg-elevated px-2 py-1.5 text-xs font-semibold"
+                  aria-label="관리자"
+                >
+                  <Gear className="h-3.5 w-3.5" weight="bold" />
+                </Link>
+              )}
+
               <Link
                 href="/mypage/charge"
                 className="flex items-center gap-1 rounded-xl bg-accent px-2.5 py-1.5 text-xs font-semibold text-white"
