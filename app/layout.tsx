@@ -24,7 +24,7 @@ const mono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "티지마켓 — 텔레그램 SMM & 연식채널",
+  title: "펭구마켓 — 텔레그램 SMM & 연식채널",
   description:
     "텔레그램 멤버·조회수·리액션 SMM 패널과 연식 채널을 한 곳에서. 첫 가입 1시간 한정 매칭 적립.",
 };

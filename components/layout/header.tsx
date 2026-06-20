@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Wallet, Coins, ShoppingCart, Lightning } from "@phosphor-icons/react/ssr";
+import { Wallet, Coins, ShoppingCart, Lightning, Plus } from "@phosphor-icons/react/ssr";
 import { useSession } from "@/components/providers";
 import { useCart } from "@/store/cart";
 import { formatNumber } from "@/lib/utils";
@@ -27,7 +27,7 @@ export function Header() {
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-growth-gradient">
             <Lightning className="h-4 w-4 text-white" weight="fill" />
           </span>
-          <span className="text-[15px]">티지마켓</span>
+          <span className="text-[15px]">펭구마켓</span>
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
@@ -35,6 +35,14 @@ export function Header() {
 
           {user ? (
             <>
+              <Link
+                href="/mypage/charge"
+                className="flex items-center gap-1 rounded-xl bg-accent px-2.5 py-1.5 text-xs font-semibold text-white"
+              >
+                <Plus className="h-3.5 w-3.5" weight="bold" />
+                충전
+              </Link>
+
               <Link
                 href="/mypage"
                 className="hidden items-center gap-3 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs sm:flex"

@@ -68,7 +68,7 @@ export default function LoginPage() {
     <div className="mx-auto max-w-sm py-8">
       <h1 className="mb-1 text-2xl font-bold">로그인</h1>
       <p className="mb-6 text-sm text-content-secondary">
-        티지마켓에 오신 것을 환영합니다
+        펭구마켓에 오신 것을 환영합니다
       </p>
 
       <Card>
