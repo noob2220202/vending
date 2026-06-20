@@ -6,6 +6,7 @@ import { ok, fail } from "@/lib/http";
 import { findUsdtTransferByTxId } from "@/lib/tron";
 import { toChargeJson } from "@/lib/serialize";
 import { logAudit } from "@/lib/audit";
+import { notifyAdmin } from "@/lib/notify";
 
 const schema = z.object({
   chargeRequestId: z.string().min(1),
@@ -71,9 +72,24 @@ export async function POST(req: Request) {
   const quoted = Number(cr.quotedUsdt);
   const diff = Math.abs(transfer.amountUsdt - quoted) / quoted;
   if (diff > TOLERANCE) {
+    // User explicitly vouched for this TX, so an amount mismatch is a real
+    // discrepancy worth a human look — flag it instead of silently leaving
+    // the request stuck in PENDING with no trace of what was submitted.
+    const mismatched = await prisma.chargeRequest.update({
+      where: { id: cr.id },
+      data: {
+        status: "MISMATCHED",
+        matchType: "MANUAL_TXID",
+        actualUsdt: transfer.amountUsdt,
+      },
+    });
+    await notifyAdmin(
+      `⚠️ 충전 금액불일치\n사용자: ${user.username}\n요청: ${quoted} USDT\n확인된 금액: ${transfer.amountUsdt} USDT\nTXID: ${transfer.transactionId}`
+    );
     return fail(
-      `전송 금액이 일치하지 않습니다 (요청: ${quoted} USDT, 확인된 금액: ${transfer.amountUsdt} USDT)`,
-      400
+      `전송 금액이 일치하지 않습니다 (요청: ${quoted} USDT, 확인된 금액: ${transfer.amountUsdt} USDT). 관리자 확인 후 처리됩니다`,
+      400,
+      { chargeRequest: toChargeJson(mismatched) }
     );
   }
 
