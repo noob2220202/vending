@@ -12,9 +12,9 @@
 
 - **Next.js 14 (App Router) + TypeScript** — 프론트 + API Routes
 - **Tailwind CSS** — 디자인 토큰은 CSS 변수로 관리 (`--tg-theme-*` 매핑 대비)
-- **PostgreSQL + Prisma**
+- **SQLite + Prisma** (파일 기반 DB, 별도 DB 서버 불필요)
 - **jose** (JWT 세션) · **bcryptjs** (비밀번호) · **zod** (검증)
-- **framer-motion** · **lucide-react** · Pretendard
+- **framer-motion** · **@phosphor-icons/react** · Pretendard
 
 ## 로컬 실행
 

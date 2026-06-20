@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -16,7 +16,7 @@ model User {
   telegramUsername String?
   walletBalance    Int      @default(0) // charge cash (stored in KRW)
   pointBalance     Int      @default(0) // earned points (non-withdrawable)
-  role             Role     @default(USER)
+  role             String   @default("USER") // USER | ADMIN
   signupAt         DateTime @default(now())
   createdAt        DateTime @default(now())
 
@@ -28,11 +28,6 @@ model User {
   signupLogs         SignupLog[]
   vendor             Vendor?
   vendorApplications VendorApplication[]
-}
-
-enum Role {
-  USER
-  ADMIN
 }
 
 model SmmProduct {
@@ -75,17 +70,17 @@ model GeneralProduct {
 }
 
 model ChannelListing {
-  id               String        @id @default(cuid())
+  id               String    @id @default(cuid())
   title            String
   category         String
   establishedYear  Int
   subscriberCount  Int
   price            Int
-  status           ChannelStatus @default(AVAILABLE)
+  status           String    @default("AVAILABLE") // AVAILABLE | RESERVED | PROCESSING | DELIVERED | SOLD
   deliveryDeadline DateTime?
   description      String?
-  isActive         Boolean       @default(true)
-  createdAt        DateTime      @default(now())
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
 
   vendorId String?
   vendor   Vendor? @relation(fields: [vendorId], references: [id])
@@ -93,20 +88,12 @@ model ChannelListing {
   orders Order[]
 }
 
-enum ChannelStatus {
-  AVAILABLE
-  RESERVED
-  PROCESSING
-  DELIVERED
-  SOLD
-}
-
 model Order {
-  id     String      @id @default(cuid())
+  id     String @id @default(cuid())
   userId String
-  user   User        @relation(fields: [userId], references: [id])
-  type   OrderType
-  status OrderStatus @default(PENDING)
+  user   User   @relation(fields: [userId], references: [id])
+  type   String // SMM | CHANNEL | GENERAL
+  status String @default("PENDING") // PENDING | PROCESSING | COMPLETED | CANCELED | REFUNDED
 
   smmProductId    String?
   smmProduct      SmmProduct? @relation(fields: [smmProductId], references: [id])
@@ -132,94 +119,49 @@ model Order {
   completedAt DateTime?
 }
 
-enum OrderType {
-  SMM
-  CHANNEL
-  GENERAL
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  CANCELED
-  REFUNDED
-}
-
 model WalletTransaction {
-  id           String       @id @default(cuid())
+  id           String   @id @default(cuid())
   userId       String
-  user         User         @relation(fields: [userId], references: [id])
-  type         WalletTxType
+  user         User     @relation(fields: [userId], references: [id])
+  type         String // CHARGE | PURCHASE | BONUS | REFUND
   amount       Int
   balanceAfter Int
   memo         String?
-  createdAt    DateTime     @default(now())
-}
-
-enum WalletTxType {
-  CHARGE
-  PURCHASE
-  BONUS
-  REFUND
+  createdAt    DateTime @default(now())
 }
 
 model ChargeRequest {
-  id             String           @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
-  user           User             @relation(fields: [userId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
   krwAmount      Int
   quotedRate     Float
   quotedUsdt     Decimal
   quoteExpiresAt DateTime
-  matchType      ChargeMatchType?
-  matchedTxId    String?          @unique
+  matchType      String? // AUTO_SENDER_MATCH | MANUAL_TXID
+  matchedTxId    String?   @unique
   actualUsdt     Decimal?
   finalRate      Float?
   finalKrw       Int?
-  status         ChargeStatus     @default(PENDING)
-  createdAt      DateTime         @default(now())
+  status         String    @default("PENDING") // PENDING | CONFIRMED | MISMATCHED | EXPIRED | REJECTED
+  createdAt      DateTime  @default(now())
   confirmedAt    DateTime?
 }
 
-enum ChargeMatchType {
-  AUTO_SENDER_MATCH
-  MANUAL_TXID
-}
-
-enum ChargeStatus {
-  PENDING
-  CONFIRMED
-  MISMATCHED
-  EXPIRED
-  REJECTED
-}
-
 model Coupon {
-  id        String       @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  user      User         @relation(fields: [userId], references: [id])
-  type      CouponType
+  user      User     @relation(fields: [userId], references: [id])
+  type      String // PERCENT_MATCH | FIXED
   value     Int
-  minSpend  Int          @default(0)
+  minSpend  Int      @default(0)
   maxBonus  Int
   expiresAt DateTime
-  status    CouponStatus @default(ACTIVE)
+  status    String   @default("ACTIVE") // ACTIVE | USED | EXPIRED
   source    String
-  createdAt DateTime     @default(now())
+  createdAt DateTime @default(now())
 
   rouletteSpin RouletteSpin?
-}
-
-enum CouponType {
-  PERCENT_MATCH
-  FIXED
-}
-
-enum CouponStatus {
-  ACTIVE
-  USED
-  EXPIRED
 }
 
 model RouletteSpin {
@@ -250,20 +192,14 @@ model SignupLog {
 // Multi-vendor marketplace (future): a User approved as Vendor can own
 // product listings via the nullable vendorId fields above.
 model VendorApplication {
-  id           String          @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
-  user         User            @relation(fields: [userId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
   businessName String
   contact      String?
-  status       VendorAppStatus @default(PENDING)
-  createdAt    DateTime        @default(now())
+  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt    DateTime  @default(now())
   reviewedAt   DateTime?
-}
-
-enum VendorAppStatus {
-  PENDING
-  APPROVED
-  REJECTED
 }
 
 model Vendor {
@@ -280,8 +216,9 @@ model Vendor {
   orders          Order[]
 }
 
-// Advertising banner system (future): BannerSlot enumerates placement
-// positions; AdBanner is the bookable creative for a slot + date range.
+// Advertising banner system (future): slot enumerates placement positions
+// (HOME_HERO | HOME_FEED | PRODUCT_LIST_TOP | CHECKOUT_BOTTOM); AdBanner is
+// the bookable creative for a slot + date range.
 model Advertiser {
   id        String   @id @default(cuid())
   name      String
@@ -292,28 +229,14 @@ model Advertiser {
 }
 
 model AdBanner {
-  id           String       @id @default(cuid())
+  id           String    @id @default(cuid())
   advertiserId String
-  advertiser   Advertiser   @relation(fields: [advertiserId], references: [id])
-  slot         BannerSlot
+  advertiser   Advertiser @relation(fields: [advertiserId], references: [id])
+  slot         String // HOME_HERO | HOME_FEED | PRODUCT_LIST_TOP | CHECKOUT_BOTTOM
   imageUrl     String
   linkUrl      String
-  status       BannerStatus @default(DRAFT)
+  status       String    @default("DRAFT") // DRAFT | ACTIVE | PAUSED | EXPIRED
   startsAt     DateTime?
   endsAt       DateTime?
-  createdAt    DateTime     @default(now())
-}
-
-enum BannerSlot {
-  HOME_HERO
-  HOME_FEED
-  PRODUCT_LIST_TOP
-  CHECKOUT_BOTTOM
-}
-
-enum BannerStatus {
-  DRAFT
-  ACTIVE
-  PAUSED
-  EXPIRED
+  createdAt    DateTime  @default(now())
 }

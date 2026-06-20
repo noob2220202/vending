@@ -34,6 +34,8 @@ export function smmPrice(quantity: number, pricePerThousand: number): number {
   return Math.round((quantity * pricePerThousand) / 1000);
 }
 
+export type OrderType = "SMM" | "CHANNEL" | "GENERAL";
+
 const ORDER_TYPE_LABEL = {
   SMM: "SMM",
   CHANNEL: "연식채널",
@@ -46,12 +48,12 @@ const ORDER_TYPE_TONE = {
   GENERAL: "neutral",
 } as const;
 
-export function orderTypeLabel(type: keyof typeof ORDER_TYPE_LABEL): string {
-  return ORDER_TYPE_LABEL[type];
+// `type` comes from Prisma's Order.type (a plain String column on SQLite,
+// no DB-level enum), so callers pass the raw string value here.
+export function orderTypeLabel(type: string): string {
+  return ORDER_TYPE_LABEL[type as OrderType];
 }
 
-export function orderTypeTone(
-  type: keyof typeof ORDER_TYPE_TONE
-): "accent" | "gradient" | "neutral" {
-  return ORDER_TYPE_TONE[type];
+export function orderTypeTone(type: string): "accent" | "gradient" | "neutral" {
+  return ORDER_TYPE_TONE[type as OrderType];
 }

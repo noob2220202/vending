@@ -15,7 +15,7 @@ export async function GET() {
   const payload: ActiveCoupon | null = coupon
     ? {
         id: coupon.id,
-        type: coupon.type,
+        type: coupon.type as ActiveCoupon["type"],
         value: coupon.value,
         maxBonus: coupon.maxBonus,
         minSpend: coupon.minSpend,

@@ -10,6 +10,6 @@ export function toSessionUser(user: User): SessionUser {
     telegramUsername: user.telegramUsername,
     walletBalance: user.walletBalance,
     pointBalance: user.pointBalance,
-    role: user.role,
+    role: user.role as SessionUser["role"],
   };
 }

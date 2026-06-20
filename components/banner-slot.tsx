@@ -1,4 +1,8 @@
-import type { BannerSlot as BannerSlotName } from "@prisma/client";
+export type BannerSlotName =
+  | "HOME_HERO"
+  | "HOME_FEED"
+  | "PRODUCT_LIST_TOP"
+  | "CHECKOUT_BOTTOM";
 
 export interface BannerSlotProps {
   slot: BannerSlotName;
