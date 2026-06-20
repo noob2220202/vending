@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { ok, fail } from "@/lib/http";
 import { toChargeJson } from "@/lib/serialize";
+import { logAudit } from "@/lib/audit";
 
 const schema = z.object({ action: z.enum(["approve", "reject"]) });
 
@@ -10,8 +11,9 @@ export async function POST(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  let admin;
   try {
-    await requireAdmin();
+    admin = await requireAdmin();
   } catch {
     return fail("권한이 없습니다", 403);
   }
@@ -35,6 +37,14 @@ export async function POST(
     const updated = await prisma.chargeRequest.update({
       where: { id: cr.id },
       data: { status: "REJECTED" },
+    });
+    await logAudit({
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: "CHARGE_REJECT",
+      targetType: "ChargeRequest",
+      targetId: cr.id,
+      metadata: { krwAmount: cr.krwAmount },
     });
     return ok({ chargeRequest: toChargeJson(updated) });
   }
@@ -66,6 +76,15 @@ export async function POST(
       },
     });
     return updated;
+  });
+
+  await logAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "CHARGE_APPROVE",
+    targetType: "ChargeRequest",
+    targetId: cr.id,
+    metadata: { krwAmount: cr.krwAmount, matchType: result.matchType },
   });
 
   return ok({ chargeRequest: toChargeJson(result) });

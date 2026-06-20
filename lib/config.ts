@@ -27,4 +27,15 @@ export const config = {
     adminNotifyBotToken: process.env.ADMIN_NOTIFY_BOT_TOKEN ?? "",
     adminNotifyChatId: process.env.ADMIN_NOTIFY_CHAT_ID ?? "",
   },
+
+  // 전자상거래법 표시 의무 정보 (footer + /legal/* 페이지). 실제 운영 전 .env에 채워넣을 것.
+  company: {
+    name: process.env.COMPANY_NAME ?? "(상호명 미입력)",
+    representative: process.env.COMPANY_REPRESENTATIVE ?? "(대표자명 미입력)",
+    registrationNumber: process.env.COMPANY_REGISTRATION_NUMBER ?? "(사업자등록번호 미입력)",
+    mailOrderNumber: process.env.COMPANY_MAIL_ORDER_NUMBER ?? "(통신판매업신고번호 미입력)",
+    address: process.env.COMPANY_ADDRESS ?? "(사업장 주소 미입력)",
+    email: process.env.COMPANY_EMAIL ?? "(고객센터 이메일 미입력)",
+    phone: process.env.COMPANY_PHONE ?? "(고객센터 연락처 미입력)",
+  },
 } as const;

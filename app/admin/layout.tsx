@@ -5,6 +5,7 @@ import {
   CurrencyCircleDollar,
   Storefront,
   ClipboardText,
+  Package,
 } from "@phosphor-icons/react/ssr";
 import { requireAdmin } from "@/lib/auth";
 
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 const TABS = [
   { href: "/admin", label: "대시보드", icon: ChartBar },
   { href: "/admin/charges", label: "충전요청", icon: CurrencyCircleDollar },
+  { href: "/admin/products", label: "상품관리", icon: Package },
   { href: "/admin/channels", label: "연식채널", icon: Storefront },
   { href: "/admin/orders", label: "주문현황", icon: ClipboardText },
 ];

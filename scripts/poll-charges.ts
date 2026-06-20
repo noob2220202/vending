@@ -32,6 +32,7 @@ async function main() {
   const { PrismaClient, Prisma } = await import("@prisma/client");
   const { getIncomingUsdtTransfers } = await import("../lib/tron");
   const { notifyAdmin } = await import("../lib/notify");
+  const { logAudit } = await import("../lib/audit");
   const prisma = new PrismaClient();
 
   try {
@@ -91,6 +92,16 @@ async function main() {
             },
           });
         });
+        await logAudit(
+          {
+            actorRole: "SYSTEM",
+            action: "CHARGE_AUTO_CONFIRM",
+            targetType: "ChargeRequest",
+            targetId: cr.id,
+            metadata: { krwAmount: cr.krwAmount, txId: match.transactionId },
+          },
+          prisma
+        );
         console.log(`[poll-charges] confirmed ${cr.id} via tx ${match.transactionId}`);
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

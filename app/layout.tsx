@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { toSessionUser } from "@/lib/serialize";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 // Self-hosted (not next/font/google) so production builds don't depend on
 // reaching fonts.gstatic.com at build time.
@@ -49,9 +50,10 @@ export default async function RootLayout({
       <body>
         <Providers initialUser={sessionUser}>
           <Header />
-          <main className="mx-auto min-h-[calc(100dvh-3.5rem)] max-w-3xl px-4 pb-28 pt-4">
+          <main className="mx-auto min-h-[calc(100dvh-3.5rem)] max-w-3xl px-4 pt-4">
             {children}
           </main>
+          <Footer />
         </Providers>
       </body>
     </html>

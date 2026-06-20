@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { ok, fail } from "@/lib/http";
+import { logAudit } from "@/lib/audit";
 
 const schema = z.object({ action: z.enum(["complete", "cancel"]) });
 
@@ -9,8 +10,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  let admin;
   try {
-    await requireAdmin();
+    admin = await requireAdmin();
   } catch {
     return fail("권한이 없습니다", 403);
   }
@@ -43,6 +45,13 @@ export async function PATCH(
         });
       }
       return o;
+    });
+    await logAudit({
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: "ORDER_COMPLETE",
+      targetType: "Order",
+      targetId: order.id,
     });
     return ok({ order: updated });
   }
@@ -79,6 +88,15 @@ export async function PATCH(
       });
     }
     return o;
+  });
+
+  await logAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "ORDER_CANCEL",
+    targetType: "Order",
+    targetId: order.id,
+    metadata: { refundAmount: order.amount },
   });
 
   return ok({ order: updated });

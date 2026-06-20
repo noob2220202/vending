@@ -5,15 +5,13 @@ import { ok, fail } from "@/lib/http";
 import { logAudit } from "@/lib/audit";
 
 const updateSchema = z.object({
-  title: z.string().trim().min(1).max(200).optional(),
+  name: z.string().trim().min(1).max(200).optional(),
   category: z.string().trim().min(1).max(50).optional(),
-  price: z.number().int().min(0).optional(),
-  subscriberCount: z.number().int().min(0).optional(),
-  status: z
-    .enum(["AVAILABLE", "RESERVED", "PROCESSING", "DELIVERED", "SOLD"])
-    .optional(),
-  isActive: z.boolean().optional(),
   description: z.string().trim().max(2000).optional(),
+  price: z.number().int().min(0).optional(),
+  stock: z.number().int().min(0).optional(),
+  imageUrl: z.string().trim().max(500).optional(),
+  isActive: z.boolean().optional(),
 });
 
 export async function PATCH(
@@ -41,17 +39,17 @@ export async function PATCH(
     return fail("수정할 내용이 없습니다");
   }
 
-  const channel = await prisma.channelListing.update({
+  const product = await prisma.generalProduct.update({
     where: { id: params.id },
     data: parsed.data,
   });
   await logAudit({
     actorId: admin.id,
     actorRole: admin.role,
-    action: "CHANNEL_UPDATE",
-    targetType: "ChannelListing",
-    targetId: channel.id,
+    action: "GENERAL_PRODUCT_UPDATE",
+    targetType: "GeneralProduct",
+    targetId: product.id,
     metadata: parsed.data,
   });
-  return ok({ channel });
+  return ok({ product });
 }

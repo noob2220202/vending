@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { ok, fail } from "@/lib/http";
 import { findUsdtTransferByTxId } from "@/lib/tron";
 import { toChargeJson } from "@/lib/serialize";
+import { logAudit } from "@/lib/audit";
 
 const schema = z.object({
   chargeRequestId: z.string().min(1),
@@ -104,6 +105,14 @@ export async function POST(req: Request) {
         },
       });
       return updated;
+    });
+    await logAudit({
+      actorId: user.id,
+      actorRole: user.role,
+      action: "CHARGE_CONFIRM_MANUAL_TXID",
+      targetType: "ChargeRequest",
+      targetId: cr.id,
+      metadata: { krwAmount: cr.krwAmount, txId: transfer.transactionId },
     });
     return ok({ success: true, chargeRequest: toChargeJson(result) });
   } catch (e) {

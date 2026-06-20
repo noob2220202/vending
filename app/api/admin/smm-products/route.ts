@@ -5,12 +5,14 @@ import { ok, fail } from "@/lib/http";
 import { logAudit } from "@/lib/audit";
 
 const createSchema = z.object({
-  title: z.string().trim().min(1).max(200),
-  category: z.string().trim().min(1).max(50),
-  establishedYear: z.number().int().min(2000).max(2100),
-  subscriberCount: z.number().int().min(0),
-  price: z.number().int().min(0),
-  description: z.string().trim().max(2000).optional(),
+  platform: z.string().trim().min(1).max(30),
+  category: z.enum(["MEMBERS", "VIEWS", "REACTIONS", "BOOST"]),
+  name: z.string().trim().min(1).max(200),
+  pricePerThousand: z.number().int().min(0),
+  minQty: z.number().int().min(1),
+  maxQty: z.number().int().min(1),
+  speedLabel: z.string().trim().min(1).max(50),
+  externalServiceId: z.string().trim().min(1).max(50),
 });
 
 export async function GET() {
@@ -20,11 +22,11 @@ export async function GET() {
     return fail("권한이 없습니다", 403);
   }
 
-  const channels = await prisma.channelListing.findMany({
+  const products = await prisma.smmProduct.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,
   });
-  return ok({ channels });
+  return ok({ products });
 }
 
 export async function POST(req: Request) {
@@ -45,14 +47,17 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return fail(parsed.error.issues[0]?.message ?? "입력값을 확인해주세요");
   }
+  if (parsed.data.minQty > parsed.data.maxQty) {
+    return fail("최소 수량은 최대 수량보다 클 수 없습니다");
+  }
 
-  const channel = await prisma.channelListing.create({ data: parsed.data });
+  const product = await prisma.smmProduct.create({ data: parsed.data });
   await logAudit({
     actorId: admin.id,
     actorRole: admin.role,
-    action: "CHANNEL_CREATE",
-    targetType: "ChannelListing",
-    targetId: channel.id,
+    action: "SMM_PRODUCT_CREATE",
+    targetType: "SmmProduct",
+    targetId: product.id,
   });
-  return ok({ channel });
+  return ok({ product });
 }
