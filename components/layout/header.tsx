@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Wallet, Coins, ShoppingCart, Zap } from "lucide-react";
+import { Wallet, Coins, ShoppingCart, Lightning } from "@phosphor-icons/react/ssr";
 import { useSession } from "@/components/providers";
 import { useCart } from "@/store/cart";
 import { formatNumber } from "@/lib/utils";
@@ -25,7 +25,7 @@ export function Header() {
       <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
         <Link href="/" className="flex items-center gap-1.5 font-bold">
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-growth-gradient">
-            <Zap className="h-4 w-4 text-white" />
+            <Lightning className="h-4 w-4 text-white" weight="fill" />
           </span>
           <span className="text-[15px]">티지마켓</span>
         </Link>
@@ -40,13 +40,13 @@ export function Header() {
                 className="hidden items-center gap-3 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs sm:flex"
               >
                 <span className="flex items-center gap-1">
-                  <Wallet className="h-3.5 w-3.5 text-accent" />
+                  <Wallet className="h-3.5 w-3.5 text-accent" weight="bold" />
                   <span className="tnum font-semibold">
                     {formatNumber(user.walletBalance)}
                   </span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Coins className="h-3.5 w-3.5 text-warning" />
+                  <Coins className="h-3.5 w-3.5 text-warning" weight="bold" />
                   <span className="tnum font-semibold">
                     {formatNumber(user.pointBalance)}
                   </span>
@@ -54,7 +54,7 @@ export function Header() {
               </Link>
 
               <Link href="/cart" className="relative p-2">
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-5 w-5" weight="bold" />
                 {count > 0 && (
                   <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold">
                     {count}

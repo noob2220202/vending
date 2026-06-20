@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Clock } from "lucide-react";
+import { Users, Clock } from "@phosphor-icons/react/ssr";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatKRW, formatNumber } from "@/lib/utils";

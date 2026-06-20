@@ -7,7 +7,7 @@ import { notifyAdmin } from "@/lib/notify";
 import { ok, fail } from "@/lib/http";
 
 const itemSchema = z.object({
-  type: z.enum(["SMM", "CHANNEL"]),
+  type: z.enum(["SMM", "CHANNEL", "GENERAL"]),
   refId: z.string().min(1),
   quantity: z.number().int().positive().optional(),
   targetUrl: z.string().trim().url().optional(),
@@ -28,7 +28,7 @@ export async function GET() {
   const orders = await prisma.order.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
-    include: { smmProduct: true, channelListing: true },
+    include: { smmProduct: true, channelListing: true, generalProduct: true },
   });
   return ok({ orders });
 }
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     const result = await prisma.$transaction(async (tx) => {
       // 1) Re-price everything from the DB (never trust client amounts).
       const lines: {
-        type: "SMM" | "CHANNEL";
+        type: "SMM" | "CHANNEL" | "GENERAL";
         refId: string;
         amount: number;
         quantity?: number;
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
             quantity: qty,
             targetUrl: item.targetUrl,
           });
-        } else {
+        } else if (item.type === "CHANNEL") {
           const channel = await tx.channelListing.findUnique({
             where: { id: item.refId },
           });
@@ -99,6 +99,23 @@ export async function POST(req: Request) {
             type: "CHANNEL",
             refId: channel.id,
             amount: channel.price,
+          });
+        } else {
+          const general = await tx.generalProduct.findUnique({
+            where: { id: item.refId },
+          });
+          if (!general || !general.isActive) {
+            throw new Error("판매 중이지 않은 상품이 포함되어 있습니다");
+          }
+          const qty = item.quantity ?? 1;
+          if (qty < 1 || qty > general.stock) {
+            throw new Error(`${general.name}: 재고가 부족합니다`);
+          }
+          lines.push({
+            type: "GENERAL",
+            refId: general.id,
+            amount: general.price * qty,
+            quantity: qty,
           });
         }
       }
@@ -124,9 +141,10 @@ export async function POST(req: Request) {
         },
       });
 
-      // 3) Create orders + reserve channel stock.
+      // 3) Create orders + reserve channel/general stock.
       const createdIds: string[] = [];
       const channelTitles: string[] = [];
+      const generalTitles: string[] = [];
       for (const l of lines) {
         if (l.type === "SMM") {
           // Phase 1: no external SMM API yet → PROCESSING (auto-completed in Phase 3).
@@ -142,7 +160,7 @@ export async function POST(req: Request) {
             },
           });
           createdIds.push(order.id);
-        } else {
+        } else if (l.type === "CHANNEL") {
           // Atomic claim: only succeeds if still AVAILABLE.
           const claimed = await tx.channelListing.updateMany({
             where: { id: l.refId, status: "AVAILABLE" },
@@ -168,6 +186,31 @@ export async function POST(req: Request) {
             where: { id: l.refId },
           });
           if (ch) channelTitles.push(ch.title);
+        } else {
+          // Atomic claim: decrement only succeeds while stock covers the qty.
+          const claimed = await tx.generalProduct.updateMany({
+            where: { id: l.refId, stock: { gte: l.quantity ?? 1 } },
+            data: { stock: { decrement: l.quantity ?? 1 } },
+          });
+          if (claimed.count === 0) {
+            throw new Error("재고가 방금 소진되었습니다. 다시 시도해주세요");
+          }
+          // Phase 1: operator delivers manually, same as channels → PROCESSING.
+          const order = await tx.order.create({
+            data: {
+              userId: user.id,
+              type: "GENERAL",
+              status: "PROCESSING",
+              generalProductId: l.refId,
+              quantity: l.quantity,
+              amount: l.amount,
+            },
+          });
+          createdIds.push(order.id);
+          const gp = await tx.generalProduct.findUnique({
+            where: { id: l.refId },
+          });
+          if (gp) generalTitles.push(`${gp.name} x${l.quantity ?? 1}`);
         }
       }
 
@@ -180,13 +223,24 @@ export async function POST(req: Request) {
         });
       }
 
-      return { total, bonus, channelTitles, orderCount: createdIds.length };
+      return {
+        total,
+        bonus,
+        channelTitles,
+        generalTitles,
+        orderCount: createdIds.length,
+      };
     });
 
     // Side effects after the transaction commits.
     if (result.channelTitles.length > 0) {
       await notifyAdmin(
         `🆕 연식채널 주문 (수동전달 필요)\n사용자: ${user.username}\n채널: ${result.channelTitles.join(", ")}\n마감: 24시간 내`
+      );
+    }
+    if (result.generalTitles.length > 0) {
+      await notifyAdmin(
+        `🆕 일반상품 주문 (수동전달 필요)\n사용자: ${user.username}\n상품: ${result.generalTitles.join(", ")}`
       );
     }
 

@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Wallet, Coins, Plus } from "lucide-react";
+import { Wallet, Coins, Plus } from "@phosphor-icons/react/ssr";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "@/components/order-status-badge";
-import { formatKRW, formatNumber } from "@/lib/utils";
+import { formatKRW, formatNumber, orderTypeLabel, orderTypeTone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export default async function MyPage() {
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 20,
-      include: { smmProduct: true, channelListing: true },
+      include: { smmProduct: true, channelListing: true, generalProduct: true },
     }),
     prisma.coupon.findMany({
       where: { userId: user.id },
@@ -36,7 +36,7 @@ export default async function MyPage() {
         <Card>
           <CardBody>
             <div className="mb-1 flex items-center gap-1.5 text-xs text-content-secondary">
-              <Wallet className="h-3.5 w-3.5 text-accent" /> 지갑 잔액
+              <Wallet className="h-3.5 w-3.5 text-accent" weight="bold" /> 지갑 잔액
             </div>
             <p className="tnum text-xl font-bold">
               {formatKRW(user.walletBalance)}
@@ -46,7 +46,7 @@ export default async function MyPage() {
         <Card>
           <CardBody>
             <div className="mb-1 flex items-center gap-1.5 text-xs text-content-secondary">
-              <Coins className="h-3.5 w-3.5 text-warning" /> 포인트
+              <Coins className="h-3.5 w-3.5 text-warning" weight="bold" /> 포인트
             </div>
             <p className="tnum text-xl font-bold">
               {formatNumber(user.pointBalance)}P
@@ -59,7 +59,7 @@ export default async function MyPage() {
         href="/mypage/charge"
         className="flex items-center justify-center gap-1.5 rounded-xl bg-accent py-3 text-sm font-semibold text-white"
       >
-        <Plus className="h-4 w-4" /> 충전하기
+        <Plus className="h-4 w-4" weight="bold" /> 충전하기
       </Link>
 
       {/* Coupons */}
@@ -117,14 +117,13 @@ export default async function MyPage() {
                   <CardBody className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Badge tone={o.type === "SMM" ? "accent" : "gradient"}>
-                          {o.type === "SMM" ? "SMM" : "연식채널"}
-                        </Badge>
+                        <Badge tone={orderTypeTone(o.type)}>{orderTypeLabel(o.type)}</Badge>
                         <OrderStatusBadge status={o.status} />
                       </div>
                       <p className="text-sm font-medium">
                         {o.smmProduct?.name ??
                           o.channelListing?.title ??
+                          o.generalProduct?.name ??
                           "주문"}
                       </p>
                     </div>

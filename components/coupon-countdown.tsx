@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Clock } from "lucide-react";
+import { Clock } from "@phosphor-icons/react/ssr";
 import { useSession } from "@/components/providers";
 import { useCountdown } from "@/components/ui/countdown";
 import { formatMMSS } from "@/lib/utils";
@@ -40,7 +40,7 @@ export function CouponCountdown() {
       className="flex items-center gap-1.5 rounded-xl bg-growth-gradient px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg shadow-accent/20"
       title="가입 1시간 한정 매칭 적립 쿠폰"
     >
-      <Clock className="h-3.5 w-3.5" />
+      <Clock className="h-3.5 w-3.5" weight="bold" />
       <span className="tnum">{formatMMSS(ms)}</span>
     </Link>
   );

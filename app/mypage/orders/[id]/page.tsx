@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { CaretLeft } from "@phosphor-icons/react/ssr";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "@/components/order-status-badge";
-import { formatKRW, formatNumber } from "@/lib/utils";
+import { formatKRW, formatNumber, orderTypeLabel, orderTypeTone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export default async function OrderDetailPage({
 
   const order = await prisma.order.findUnique({
     where: { id: params.id },
-    include: { smmProduct: true, channelListing: true },
+    include: { smmProduct: true, channelListing: true, generalProduct: true },
   });
   if (!order || order.userId !== user.id) notFound();
 
@@ -30,18 +30,19 @@ export default async function OrderDetailPage({
         href="/mypage"
         className="inline-flex items-center gap-1 text-sm text-content-secondary"
       >
-        <ChevronLeft className="h-4 w-4" /> 마이페이지
+        <CaretLeft className="h-4 w-4" /> 마이페이지
       </Link>
 
       <div className="flex items-center gap-2">
-        <Badge tone={order.type === "SMM" ? "accent" : "gradient"}>
-          {order.type === "SMM" ? "SMM" : "연식채널"}
-        </Badge>
+        <Badge tone={orderTypeTone(order.type)}>{orderTypeLabel(order.type)}</Badge>
         <OrderStatusBadge status={order.status} />
       </div>
 
       <h1 className="text-xl font-bold">
-        {order.smmProduct?.name ?? order.channelListing?.title ?? "주문 상세"}
+        {order.smmProduct?.name ??
+          order.channelListing?.title ??
+          order.generalProduct?.name ??
+          "주문 상세"}
       </h1>
 
       <Card>
@@ -79,6 +80,15 @@ export default async function OrderDetailPage({
             </>
           )}
 
+          {order.type === "GENERAL" && (
+            <>
+              <span className="text-content-secondary">수량</span>
+              <span className="tnum text-right">
+                {formatNumber(order.quantity ?? 0)}개
+              </span>
+            </>
+          )}
+
           <span className="text-content-secondary">결제금액</span>
           <span className="tnum text-right font-semibold">
             {formatKRW(order.amount)}
@@ -103,6 +113,15 @@ export default async function OrderDetailPage({
           <CardBody className="text-xs text-content-secondary">
             운영자가 24시간 내(영업일 기준 지연 가능) 채널 소유권을 이전합니다.
             전달 완료 시 알림을 보내드립니다.
+          </CardBody>
+        </Card>
+      )}
+
+      {order.type === "GENERAL" && order.status === "PROCESSING" && (
+        <Card glass>
+          <CardBody className="text-xs text-content-secondary">
+            운영자가 결제 확인 후 상품을 직접 전달합니다. 전달 완료 시 알림을
+            보내드립니다.
           </CardBody>
         </Card>
       )}

@@ -121,7 +121,39 @@ async function main() {
   await prisma.channelListing.deleteMany({});
   await prisma.channelListing.createMany({ data: channels });
 
-  console.log("Seed complete: admin + %d SMM + %d channels", smm.length, channels.length);
+  const generalProducts = [
+    {
+      name: "텔레그램 프리미엄 3개월 (계정 업그레이드)",
+      category: "프리미엄",
+      description: "운영자가 직접 지급하는 텔레그램 프리미엄 3개월 코드.",
+      price: 35000,
+      stock: 50,
+    },
+    {
+      name: "맞춤 채널 로고/배너 디자인",
+      category: "디자인",
+      description: "채널용 로고 + 배너 세트 제작 (시안 2종, 24시간 내 전달).",
+      price: 60000,
+      stock: 20,
+    },
+    {
+      name: "채널 운영 컨설팅 (1회)",
+      category: "컨설팅",
+      description: "성장 전략 1:1 컨설팅, 텔레그램 음성/문자 상담 30분.",
+      price: 120000,
+      stock: 10,
+    },
+  ];
+
+  await prisma.generalProduct.deleteMany({});
+  await prisma.generalProduct.createMany({ data: generalProducts });
+
+  console.log(
+    "Seed complete: admin + %d SMM + %d channels + %d general",
+    smm.length,
+    channels.length,
+    generalProducts.length
+  );
 }
 
 main()

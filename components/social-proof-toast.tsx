@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { TrendingUp } from "lucide-react";
+import { TrendUp } from "@phosphor-icons/react/ssr";
 
 const NAMES = ["김**", "이**", "박**", "최**", "정**", "강**", "조**", "윤**"];
 const ACTIONS = [
@@ -52,7 +52,7 @@ export function SocialProofToast() {
             exit={{ opacity: 0, y: 16 }}
             className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs shadow-lg"
           >
-            <TrendingUp className="h-4 w-4 text-success" />
+            <TrendUp className="h-4 w-4 text-success" weight="bold" />
             <span>{msg}</span>
           </motion.div>
         )}

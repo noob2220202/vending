@@ -33,3 +33,25 @@ export function formatMMSS(ms: number): string {
 export function smmPrice(quantity: number, pricePerThousand: number): number {
   return Math.round((quantity * pricePerThousand) / 1000);
 }
+
+const ORDER_TYPE_LABEL = {
+  SMM: "SMM",
+  CHANNEL: "연식채널",
+  GENERAL: "일반상품",
+} as const;
+
+const ORDER_TYPE_TONE = {
+  SMM: "accent",
+  CHANNEL: "gradient",
+  GENERAL: "neutral",
+} as const;
+
+export function orderTypeLabel(type: keyof typeof ORDER_TYPE_LABEL): string {
+  return ORDER_TYPE_LABEL[type];
+}
+
+export function orderTypeTone(
+  type: keyof typeof ORDER_TYPE_TONE
+): "accent" | "gradient" | "neutral" {
+  return ORDER_TYPE_TONE[type];
+}

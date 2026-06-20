@@ -20,12 +20,14 @@ model User {
   signupAt         DateTime @default(now())
   createdAt        DateTime @default(now())
 
-  rouletteSpin   RouletteSpin?
-  orders         Order[]
-  coupons        Coupon[]
-  walletTxs      WalletTransaction[]
-  chargeRequests ChargeRequest[]
-  signupLogs     SignupLog[]
+  rouletteSpin       RouletteSpin?
+  orders             Order[]
+  coupons            Coupon[]
+  walletTxs          WalletTransaction[]
+  chargeRequests     ChargeRequest[]
+  signupLogs         SignupLog[]
+  vendor             Vendor?
+  vendorApplications VendorApplication[]
 }
 
 enum Role {
@@ -46,6 +48,29 @@ model SmmProduct {
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
 
+  // Multi-vendor marketplace (future): null = operated directly by the platform.
+  vendorId String?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+
+  orders Order[]
+}
+
+// Operator-fulfilled goods (manual delivery, counted stock) — third product
+// line alongside SMM (API-fulfilled) and ChannelListing (unique inventory).
+model GeneralProduct {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  description String?
+  price       Int
+  stock       Int      @default(0)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  vendorId String?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+
   orders Order[]
 }
 
@@ -61,6 +86,9 @@ model ChannelListing {
   description      String?
   isActive         Boolean       @default(true)
   createdAt        DateTime      @default(now())
+
+  vendorId String?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
 
   orders Order[]
 }
@@ -89,9 +117,16 @@ model Order {
   channelListingId String?
   channelListing   ChannelListing? @relation(fields: [channelListingId], references: [id])
 
+  generalProductId String?
+  generalProduct   GeneralProduct? @relation(fields: [generalProductId], references: [id])
+
   amount      Int
   pointsUsed  Int @default(0)
   bonusEarned Int @default(0)
+
+  // Multi-vendor marketplace (future): which vendor fulfills this order, if any.
+  vendorId String?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
 
   createdAt   DateTime  @default(now())
   completedAt DateTime?
@@ -100,6 +135,7 @@ model Order {
 enum OrderType {
   SMM
   CHANNEL
+  GENERAL
 }
 
 enum OrderStatus {
@@ -204,4 +240,80 @@ model SignupLog {
   ip        String?
   userAgent String?
   createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Future phases — schema staged now so later features need no migration of
+// existing tables, but nothing below is wired to UI/API yet (spec §16).
+// ---------------------------------------------------------------------------
+
+// Multi-vendor marketplace (future): a User approved as Vendor can own
+// product listings via the nullable vendorId fields above.
+model VendorApplication {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  businessName String
+  contact      String?
+  status       VendorAppStatus @default(PENDING)
+  createdAt    DateTime        @default(now())
+  reviewedAt   DateTime?
+}
+
+enum VendorAppStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Vendor {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  smmProducts     SmmProduct[]
+  generalProducts GeneralProduct[]
+  channelListings ChannelListing[]
+  orders          Order[]
+}
+
+// Advertising banner system (future): BannerSlot enumerates placement
+// positions; AdBanner is the bookable creative for a slot + date range.
+model Advertiser {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String?
+  createdAt DateTime @default(now())
+
+  banners AdBanner[]
+}
+
+model AdBanner {
+  id           String       @id @default(cuid())
+  advertiserId String
+  advertiser   Advertiser   @relation(fields: [advertiserId], references: [id])
+  slot         BannerSlot
+  imageUrl     String
+  linkUrl      String
+  status       BannerStatus @default(DRAFT)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  createdAt    DateTime     @default(now())
+}
+
+enum BannerSlot {
+  HOME_HERO
+  HOME_FEED
+  PRODUCT_LIST_TOP
+  CHECKOUT_BOTTOM
+}
+
+enum BannerStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
 }

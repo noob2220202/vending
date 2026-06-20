@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Wallet, PartyPopper } from "lucide-react";
+import { Wallet, Confetti } from "@phosphor-icons/react/ssr";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PrimaryActionBar } from "@/components/layout/primary-action-bar";
+import { BannerSlot } from "@/components/banner-slot";
 import { useCart } from "@/store/cart";
 import { useSession } from "@/components/providers";
 import { formatKRW, formatNumber } from "@/lib/utils";
@@ -57,7 +58,7 @@ export default function CheckoutPage() {
   if (done) {
     return (
       <div className="flex flex-col items-center py-20 text-center">
-        <PartyPopper className="mb-3 h-12 w-12 text-success" />
+        <Confetti className="mb-3 h-12 w-12 text-success" weight="fill" />
         <h1 className="mb-1 text-xl font-bold">결제 완료!</h1>
         <p className="mb-2 text-sm text-content-secondary">
           주문이 정상적으로 접수되었습니다.
@@ -135,7 +136,7 @@ export default function CheckoutPage() {
       <Card>
         <CardBody className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-sm text-content-secondary">
-            <Wallet className="h-4 w-4 text-accent" /> 지갑 잔액
+            <Wallet className="h-4 w-4 text-accent" weight="bold" /> 지갑 잔액
           </span>
           <span className="tnum font-semibold">
             {formatKRW(user.walletBalance)}
@@ -158,6 +159,8 @@ export default function CheckoutPage() {
       )}
 
       {error && <p className="text-sm text-danger">{error}</p>}
+
+      <BannerSlot slot="CHECKOUT_BOTTOM" />
 
       <PrimaryActionBar
         label={`${formatKRW(total)} 결제하기`}

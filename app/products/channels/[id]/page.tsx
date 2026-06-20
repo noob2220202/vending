@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Users, Clock, ShieldCheck } from "lucide-react";
+import { Users, Clock, ShieldCheck } from "@phosphor-icons/react/ssr";
 import { prisma } from "@/lib/prisma";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +50,7 @@ export default async function ChannelDetailPage({
 
       <Card glass>
         <CardBody className="flex items-start gap-2 text-xs text-content-secondary">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" weight="fill" />
           <p>
             결제 완료 시점부터 24시간(영업일 기준 지연 가능) 내에 운영자가 직접
             채널 소유권을 이전합니다. 전달 완료 시 알림을 보내드립니다.

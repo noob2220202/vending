@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Info } from "lucide-react";
+import { Info } from "@phosphor-icons/react/ssr";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ export default function ChargePage() {
 
       <Card glass>
         <CardBody className="flex items-start gap-2 text-xs text-content-secondary">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" weight="fill" />
           <p>
             현재는 Phase 1 모의 충전입니다. Phase 3에서 USDT-TRC20 입금
             자동매칭 + TXID 제출 방식으로 대체됩니다.

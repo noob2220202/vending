@@ -41,6 +41,10 @@ const config: Config = {
           "Roboto",
           "sans-serif",
         ],
+        // Latin display face for hero/headline copy; falls back to Pretendard for Korean glyphs.
+        display: ["var(--font-display)", "Pretendard", "sans-serif"],
+        // Tabular figures for price/balance/countdown.
+        mono: ["var(--font-mono)", "Pretendard", "monospace"],
       },
       borderRadius: {
         xl: "1rem",
@@ -55,10 +59,28 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        aurora: {
+          "0%, 100%": { transform: "translate(0%, 0%) rotate(0deg)" },
+          "50%": { transform: "translate(5%, -5%) rotate(8deg)" },
+        },
+        "gradient-sweep": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "100%": { backgroundPosition: "200% 50%" },
+        },
+        "spark-out": {
+          "0%": { opacity: "1", transform: "rotate(var(--spark-angle, 0deg)) scaleX(0.3)" },
+          "100%": {
+            opacity: "0",
+            transform: "rotate(var(--spark-angle, 0deg)) scaleX(1.6) translateX(14px)",
+          },
+        },
       },
       animation: {
         "toast-in": "toast-in 0.3s ease-out",
         "fade-in": "fade-in 0.2s ease-out",
+        aurora: "aurora 14s ease-in-out infinite",
+        "gradient-sweep": "gradient-sweep 3s linear infinite",
+        "spark-out": "spark-out 0.45s ease-out forwards",
       },
     },
   },

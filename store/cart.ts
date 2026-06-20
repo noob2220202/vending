@@ -3,13 +3,14 @@ import { persist } from "zustand/middleware";
 
 export interface CartItem {
   key: string; // unique line key
-  type: "SMM" | "CHANNEL";
-  refId: string; // SmmProduct.id or ChannelListing.id
+  type: "SMM" | "CHANNEL" | "GENERAL";
+  refId: string; // SmmProduct.id / ChannelListing.id / GeneralProduct.id
   title: string;
   amount: number; // line total in KRW
   // SMM-only
-  quantity?: number;
   targetUrl?: string;
+  // SMM + GENERAL
+  quantity?: number;
 }
 
 interface CartState {

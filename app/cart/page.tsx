@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, ShoppingCart } from "lucide-react";
+import { Trash, ShoppingCart } from "@phosphor-icons/react/ssr";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PrimaryActionBar } from "@/components/layout/primary-action-bar";
 import { useCart } from "@/store/cart";
-import { formatKRW, formatNumber } from "@/lib/utils";
+import { formatKRW, formatNumber, orderTypeLabel, orderTypeTone } from "@/lib/utils";
 
 export default function CartPage() {
   const router = useRouter();
@@ -39,15 +39,18 @@ export default function CartPage() {
           <CardBody className="flex items-start gap-3">
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <Badge tone={it.type === "SMM" ? "accent" : "gradient"}>
-                  {it.type === "SMM" ? "SMM" : "연식채널"}
-                </Badge>
+                <Badge tone={orderTypeTone(it.type)}>{orderTypeLabel(it.type)}</Badge>
               </div>
               <p className="text-sm font-semibold">{it.title}</p>
               {it.type === "SMM" && (
                 <p className="tnum text-xs text-content-secondary">
                   수량 {formatNumber(it.quantity ?? 0)}개 ·{" "}
                   <span className="break-all">{it.targetUrl}</span>
+                </p>
+              )}
+              {it.type === "GENERAL" && (
+                <p className="tnum text-xs text-content-secondary">
+                  수량 {formatNumber(it.quantity ?? 0)}개
                 </p>
               )}
               <p className="tnum text-sm font-bold text-accent">
@@ -59,7 +62,7 @@ export default function CartPage() {
               className="p-1.5 text-content-secondary hover:text-danger"
               aria-label="삭제"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash className="h-4 w-4" />
             </button>
           </CardBody>
         </Card>

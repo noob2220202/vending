@@ -1,11 +1,17 @@
 import Link from "next/link";
-import { ArrowRight, Zap, Radio } from "lucide-react";
+import { ArrowRight, Lightning, Radio, Package } from "@phosphor-icons/react/ssr";
 import { prisma } from "@/lib/prisma";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SmmCard } from "@/components/product/smm-card";
 import { ChannelCard } from "@/components/product/channel-card";
 import { SocialProofToast } from "@/components/social-proof-toast";
+import { BannerSlot } from "@/components/banner-slot";
+import { Aurora } from "@/components/bits/aurora";
+import { BlurText } from "@/components/bits/blur-text";
+import { GradientText } from "@/components/bits/gradient-text";
+import { AnimatedContent } from "@/components/bits/animated-content";
+import { StarBorder } from "@/components/bits/star-border";
 
 export const dynamic = "force-dynamic";
 
@@ -27,26 +33,27 @@ export default async function HomePage() {
     <div className="space-y-8">
       {/* Hero */}
       <section className="relative overflow-hidden rounded-2xl">
-        <div className="orb -left-10 top-0 h-48 w-48 bg-growth-gradient" />
-        <div className="orb right-0 top-10 h-40 w-40 bg-[var(--gradient-end)]" />
-        <Card glass className="border-0">
+        <Aurora />
+        <Card glass className="noise-overlay border-0">
           <CardBody className="space-y-4 py-8">
             <Badge tone="gradient">첫 가입 1시간 한정</Badge>
-            <h1 className="text-2xl font-bold leading-snug">
-              구매액 <span className="text-accent">100% 매칭 적립</span>
+            <h1 className="font-display text-2xl font-bold leading-snug">
+              <BlurText text="구매액" /> <GradientText animate>100% 매칭 적립</GradientText>
               <br />
-              지금 가입하고 룰렛 돌리기
+              <BlurText text="지금 가입하고 룰렛 돌리기" />
             </h1>
             <p className="text-sm text-content-secondary">
               텔레그램 멤버·조회수·리액션부터 연식 채널까지, 한 곳에서.
             </p>
             <div className="flex gap-2">
-              <Link
-                href="/auth/register"
-                className="inline-flex items-center gap-1 rounded-xl bg-growth-gradient px-4 py-2.5 text-sm font-semibold text-white"
-              >
-                가입하고 룰렛 <ArrowRight className="h-4 w-4" />
-              </Link>
+              <StarBorder>
+                <Link
+                  href="/auth/register"
+                  className="inline-flex items-center gap-1 rounded-2xl bg-growth-gradient px-4 py-2.5 text-sm font-semibold text-white"
+                >
+                  가입하고 룰렛 <ArrowRight className="h-4 w-4" weight="bold" />
+                </Link>
+              </StarBorder>
               <Link
                 href="/products/smm"
                 className="inline-flex items-center rounded-xl bg-bg-card px-4 py-2.5 text-sm font-medium"
@@ -58,35 +65,58 @@ export default async function HomePage() {
         </Card>
       </section>
 
+      <BannerSlot slot="HOME_HERO" />
+
       {/* Segment tabs */}
-      <section className="grid grid-cols-2 gap-3">
-        <Link href="/products/smm">
-          <Card className="transition hover:border-accent/50">
-            <CardBody className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/15">
-                <Zap className="h-5 w-5 text-accent" />
-              </span>
-              <div>
-                <p className="font-semibold">SMM 패널</p>
-                <p className="text-xs text-content-secondary">자동·즉시 처리</p>
-              </div>
-            </CardBody>
-          </Card>
-        </Link>
-        <Link href="/products/channels">
-          <Card className="transition hover:border-accent/50">
-            <CardBody className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--gradient-end)]/20">
-                <Radio className="h-5 w-5 text-[var(--gradient-start)]" />
-              </span>
-              <div>
-                <p className="font-semibold">연식 채널</p>
-                <p className="text-xs text-content-secondary">24시간 내 전달</p>
-              </div>
-            </CardBody>
-          </Card>
-        </Link>
+      <section className="grid grid-cols-3 gap-3">
+        <AnimatedContent direction="up">
+          <Link href="/products/smm">
+            <Card className="transition hover:border-accent/50">
+              <CardBody className="flex flex-col items-center gap-2 text-center">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/15">
+                  <Lightning className="h-5 w-5 text-accent" weight="fill" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">SMM 패널</p>
+                  <p className="text-xs text-content-secondary">자동·즉시 처리</p>
+                </div>
+              </CardBody>
+            </Card>
+          </Link>
+        </AnimatedContent>
+        <AnimatedContent direction="up" delay={0.05}>
+          <Link href="/products/channels">
+            <Card className="transition hover:border-accent/50">
+              <CardBody className="flex flex-col items-center gap-2 text-center">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--gradient-end)]/20">
+                  <Radio className="h-5 w-5 text-[var(--gradient-start)]" weight="fill" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">연식 채널</p>
+                  <p className="text-xs text-content-secondary">24시간 내 전달</p>
+                </div>
+              </CardBody>
+            </Card>
+          </Link>
+        </AnimatedContent>
+        <AnimatedContent direction="up" delay={0.1}>
+          <Link href="/products/general">
+            <Card className="transition hover:border-accent/50">
+              <CardBody className="flex flex-col items-center gap-2 text-center">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-warning/15">
+                  <Package className="h-5 w-5 text-warning" weight="fill" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">일반 상품</p>
+                  <p className="text-xs text-content-secondary">직접 전달</p>
+                </div>
+              </CardBody>
+            </Card>
+          </Link>
+        </AnimatedContent>
       </section>
+
+      <BannerSlot slot="HOME_FEED" />
 
       {/* Featured SMM */}
       <section>
