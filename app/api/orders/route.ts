@@ -5,6 +5,7 @@ import { smmPrice } from "@/lib/utils";
 import { applyCouponMatch } from "@/lib/orders";
 import { notifyAdmin } from "@/lib/notify";
 import { ok, fail } from "@/lib/http";
+import * as smmApi from "@/lib/smm-api";
 
 const itemSchema = z.object({
   type: z.enum(["SMM", "CHANNEL", "GENERAL"]),
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
         amount: number;
         quantity?: number;
         targetUrl?: string;
+        externalServiceId?: string;
       }[] = [];
 
       for (const item of parsed.data.items) {
@@ -84,6 +86,7 @@ export async function POST(req: Request) {
             amount: smmPrice(qty, product.pricePerThousand),
             quantity: qty,
             targetUrl: item.targetUrl,
+            externalServiceId: product.externalServiceId,
           });
         } else if (item.type === "CHANNEL") {
           const channel = await tx.channelListing.findUnique({
@@ -145,9 +148,11 @@ export async function POST(req: Request) {
       const createdIds: string[] = [];
       const channelTitles: string[] = [];
       const generalTitles: string[] = [];
+      const smmOrders: { orderId: string; serviceId: string; targetUrl: string; quantity: number }[] = [];
       for (const l of lines) {
         if (l.type === "SMM") {
-          // Phase 1: no external SMM API yet → PROCESSING (auto-completed in Phase 3).
+          // SMM API call happens after the transaction commits (§ below) so the
+          // outbound HTTP call never holds the DB transaction open.
           const order = await tx.order.create({
             data: {
               userId: user.id,
@@ -160,6 +165,12 @@ export async function POST(req: Request) {
             },
           });
           createdIds.push(order.id);
+          smmOrders.push({
+            orderId: order.id,
+            serviceId: l.externalServiceId!,
+            targetUrl: l.targetUrl!,
+            quantity: l.quantity!,
+          });
         } else if (l.type === "CHANNEL") {
           // Atomic claim: only succeeds if still AVAILABLE.
           const claimed = await tx.channelListing.updateMany({
@@ -228,6 +239,7 @@ export async function POST(req: Request) {
         bonus,
         channelTitles,
         generalTitles,
+        smmOrders,
         orderCount: createdIds.length,
       };
     });
@@ -242,6 +254,20 @@ export async function POST(req: Request) {
       await notifyAdmin(
         `🆕 일반상품 주문 (수동전달 필요)\n사용자: ${user.username}\n상품: ${result.generalTitles.join(", ")}`
       );
+    }
+    for (const o of result.smmOrders) {
+      try {
+        const placed = await smmApi.placeOrder(o.serviceId, o.targetUrl, o.quantity);
+        await prisma.order.update({
+          where: { id: o.orderId },
+          data: { externalOrderId: placed.orderId },
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await notifyAdmin(
+          `⚠️ SMM 주문 전달 실패 (수동처리 필요)\n주문ID: ${o.orderId}\n사용자: ${user.username}\n오류: ${msg}`
+        );
+      }
     }
 
     return ok({ success: true, ...result });
