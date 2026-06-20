@@ -18,3 +18,13 @@ export interface ActiveCoupon {
   minSpend: number;
   expiresAt: string; // ISO
 }
+
+export interface RouletteCoupon extends ActiveCoupon {
+  status: "ACTIVE" | "USED" | "EXPIRED";
+}
+
+export interface RouletteStatus {
+  spun: boolean;
+  resultSegment?: string;
+  coupon?: RouletteCoupon | null;
+}
